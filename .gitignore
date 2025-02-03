@@ -1,0 +1,43 @@
+# Ignorar el entorno virtual
+venv/
+env/
+
+# Archivos de caché de Python
+*.pyc
+*.pyo
+__pycache__/
+
+# Base de datos SQLite (si la usas)
+db.sqlite3
+db.sqlite3-journal
+
+# Configuración de entornos virtuales
+.Python
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Archivos de configuración locales (pueden contener credenciales)
+.env
+*.env
+
+# Archivos de logs y dumps
+*.log
+*.sqlite3
+*.dump
+
+# Archivos de compilación o IDEs
+*.swp
+*.swo
+.vscode/
+.idea/
+*.bak
+*.~*
+
+# Archivos estáticos y de compilación de Django
+staticfiles/
+media/
+
+# Migraciones generadas automáticamente (opcional, si quieres controlarlas manualmente)
+*/migrations/*.pyc
+*/migrations/*.pyo
+*/migrations/__pycache__/

@@ -169,10 +169,10 @@ def procesarVentas(dato):
                 ventas.append(vendedor)
 
 def main():
-    #datos = importarCSV("./Cedulas_Data.csv", ";")
-    #procesarCedulas(datos)
-    datosVentas=importarCSV("./ventasDataIng.csv",';')
-    procesarVentas(datosVentas)
+    datos = importarCSV("./Cedulas_Data.csv", ";")
+    procesarCedulas(datos)
+    #datosVentas=importarCSV("./ventasDataIng.csv",';')
+    #procesarVentas(datosVentas)
     
 main()
     
