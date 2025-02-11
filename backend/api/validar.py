@@ -2,13 +2,47 @@
 
 
 import csv #libreria para manejar archivos csv
+import os
 from itertools import groupby # Funcion para agrupar una lista segun un criterio 
 from operator import itemgetter # Para acceder a elementos de una lista 
+from django.conf import settings
 
+
+provincias = [  # Creo un diccionario del numero con su provincia 
+        { "codigo":"01" , "nombre":"Azuay", 'region':"Sierra" },
+        { "codigo":"02" , "nombre":"Bolivar", 'region':"Sierra" },
+        { "codigo":"03" , "nombre":"Cañar", 'region':"Sierra" },
+        { "codigo":"04" , "nombre":"Carchi", "region":"Sierra" },
+        { "codigo":"04" , "nombre":"Carchi", 'region':"Sierra" },
+        { "codigo":"05" , "nombre":"Cotopaxi", 'region':"Sierra" },
+        { "codigo":"06" , "nombre":"Chimborazo", 'region':"Sierra" },
+        { "codigo":"07" , "nombre":"El Oro", 'region':"Costa" },
+        { "codigo":"08" , "nombre":"Esmeraldas", 'region':"Costa" },
+        { "codigo":"09" , "nombre":"Galapagos", 'region':"Insular" },
+        { "codigo":"10" , "nombre":"Guayas", 'region':"Costa" },
+        { "codigo":"11" , "nombre":"Imbabura", 'region':"Sierra" },
+        { "codigo":"12" , "nombre"  :"Loja", 'region':"Sierra" },
+        { "codigo":"13" , "nombre":"Los Rios", 'region':"Costa" },
+        { "codigo":"14" , "nombre":"Manabi", 'region':"Costa" },
+        { "codigo":"15" , "nombre":"Morona Santiago", 'region':"Amazonia" },
+        { "codigo":"16" , "nombre":"Napo", 'region':"Amazonia" },
+        { "codigo":"17" , "nombre":"Pichincha", 'region':"Sierra" },
+        { "codigo":"18" , "nombre":"Santa Elena", 'region':"Costa" },
+        { "codigo":"19" , "nombre":"Santo Domingo de los Tsachilas", 'region':"Costa" },
+        { "codigo":"20" , "nombre":"Sucumbios", "region":"Amazonia" },
+        { "codigo":"21" , "nombre":"Tungurahua", 'region':"Sierra" },
+        { "codigo":"22" , "nombre":"Zamora Chinchipe", 'region':"Amazonia" },
+        { "codigo":"23" , "nombre":"Pastaza", 'region':"Amazonia" },
+        { "codigo":"24" , "nombre":"Orellana", 'region':"Amazonia" },
+        { "codigo":"30" , "nombre":"Ecuatorianos en el Exterior", 'region':"Exterior" }
+
+    ]
 #Recibe la direccion del archivo y el caracter delimitador 
 def importarCSV(direccionArchivo, delimiter): 
     try: #intenta capturar errores que puedan surgir durante el llamado del archivo
-        with open(direccionArchivo, 'r', encoding = 'utf-8') as archivo:
+        ruta_archivo = os.path.join(settings.STATIC_ROOT, 'static', direccionArchivo) # Añadimos 'data' a la ruta
+        print(f"Intentando abrir archivo en: {ruta_archivo}")
+        with open(ruta_archivo, 'r', encoding = 'utf-8') as archivo:
             datos = [] #Matriz donde voy almacenar los datos 
             lector = csv.reader(archivo, delimiter=delimiter) #Lee la informacion como una lista
             for lista in lector: #Recorre el iterable e ingresa en la lista de datos
@@ -21,35 +55,11 @@ def importarCSV(direccionArchivo, delimiter):
                         
 #Recibe el numero de la provincia y retorna el nombre como un string                  
 def obtenerProvincia(numeroProvincia): 
-    provincias = {  # Creo un diccionario del numero con su provincia 
-        "01": "Azuay",
-        "02": "Bolívar",
-        "03": "Cañar",
-        "04": "Carchi",
-        "05": "Cotopaxi",
-        "06": "Chimborazo",
-        "07": "El Oro",
-        "08": "Esmeraldas",
-        "09": "Galápagos",
-        "10": "Guayas",
-        "11": "Imbabura",
-        "12": "Loja",
-        "13": "Los Ríos",
-        "14": "Manabí",
-        "15": "Morona Santiago",
-        "16": "Napo",
-        "17": "Pichincha",
-        "18": "Santa Elena",
-        "19": "Santo Domingo de los Tsáchilas",
-        "20": "Sucumbíos",
-        "21": "Tungurahua",
-        "22": "Zamora-Chinchipe",
-        "23": "Pastaza",
-        "24": "Orellana",
-        "30": "Ecuatorianos en el exterior"
-    }
-    provincia = provincias[numeroProvincia] # Busqueda del nombre de la provincia por su clave
-    return provincia # Retorna el nombre de la provincia
+    provinciaEncontrada= None 
+    for provincia in provincias:
+        if numeroProvincia == provincia["codigo"]:
+            provinciaEncontrada = provincia
+    return provinciaEncontrada # Retorna el nombre de la provincia
 
 #Recibe la cedula y le valida
 def validarCedula(cedula):
@@ -118,7 +128,7 @@ def procesarCedulas(datos):
             nombre=registro[1]  +" "+ registro[2]
             cedula=registro[0]
             esValido = validarCedula(cedula)
-            provincia= " "
+            provincia= None
             if esValido:
                 digitoProvincia = (cedula[:2])
                 provincia = obtenerProvincia(digitoProvincia)
@@ -127,7 +137,9 @@ def procesarCedulas(datos):
                 "cedula": cedula,
                 "nombres": nombre,
                 "valido": esValido,
-                "provincia": provincia
+                "provincia": provincia["nombre"] if provincia else "",
+                "region" : provincia ["region"] 
+                
             }
             cedulas.append(persona)
     # FILTRAR VALIDAS
@@ -142,14 +154,14 @@ def procesarCedulas(datos):
     #clasificar por provincias
     cedulasValidas.sort(key=itemgetter('provincia'))
     # print(cedulasValidas)
-    for cedula in cedulasValidas:
-        print(cedula)
-    agrupado = {
-            key:list(group) for key, group in groupby(cedulasValidas,key=lambda x:x['provincia'])  
-        }   
-    for provincia,cedulas in agrupado.items():
-        convertirACSV(cedulas,provincia+'.csv')
-        
+    # for cedula in cedulasValidas:
+    #     print(cedula)
+    #     agrupado = {
+    #         key:list(group) for key, group in groupby(cedulasValidas,key=lambda x:x['provincia'])  
+    #     }   
+    # for provincia,cedulas in agrupado.items():
+    #     convertirACSV(cedulas,provincia+'.csv')
+    return cedulasValidas
     #print(agrupado)
     # for prov in agrupado:
     #     print(prov)
@@ -167,12 +179,35 @@ def procesarVentas(dato):
                     'vendedor': vendedor
                 }
                 ventas.append(vendedor)
+                
+                
 
-def main():
-    datos = importarCSV("./Cedulas_Data.csv", ";")
-    procesarCedulas(datos)
-    #datosVentas=importarCSV("./ventasDataIng.csv",';')
-    #procesarVentas(datosVentas)
+def procesarCSV(filas, indexCedula=0):
+    cedulas = []
+    for index, fila in enumerate(filas):
+        if (index>0):
+            cedula=fila[indexCedula]
+            esValido = validarCedula(cedula)
+            
+            if esValido:
+                digitoProvincia = (cedula[:2])
+                provincia = obtenerProvincia(digitoProvincia)
+                #print(provincia)
+                cedula = {
+                    'cedula': cedula,
+                    'valida': esValido,
+                    'provincia': provincia["nombre"] if  provincia else "",
+                    'region':provincia["region"] if provincia  else "" 
+                }
+                cedulas.append(cedula)
+    return cedulas
+                
+                
+                
+# def main():
+#     datos = importarCSV("./Cedulas_Data.csv", ";")
+#     cedulasProcesadas = procesarCSV(datos, 0)
+#     print(cedulasProcesadas)
     
-main()
+# main()
     
